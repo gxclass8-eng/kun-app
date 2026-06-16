@@ -1,0 +1,50 @@
+name: Build KUN APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install bubblewrap
+        run: npm install -g @bubblewrap/cli
+
+      - name: Generate APK
+        run: |
+          # إنشاء manifest.json للتطبيق
+          cat > manifest.json << 'MANIFEST'
+          {
+            "name": "KUN Control",
+            "short_name": "KUN",
+            "start_url": "/kun-app/kun_app.html",
+            "display": "standalone",
+            "background_color": "#0a0a0f",
+            "theme_color": "#58a6ff",
+            "icons": [{
+              "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23161b22' stroke='%2358a6ff' stroke-width='3'/%3E%3Ctext x='50' y='65' text-anchor='middle' fill='%2358a6ff' font-size='40' font-weight='bold'%3EK%3C/text%3E%3C/svg%3E",
+              "sizes": "512x512",
+              "type": "image/svg+xml"
+            }]
+          }
+          MANIFEST
+
+      - name: Create APK with PWA Builder
+        run: |
+          npx pwabuilder --manifest manifest.json --output kun-app.apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: KUN-Control-APK
+          path: "*.apk"
