@@ -17,31 +17,47 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install bubblewrap
-        run: npm install -g @bubblewrap/cli
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
-      - name: Generate APK
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Build Tools
         run: |
-          # إنشاء manifest.json للتطبيق
-          cat > manifest.json << 'MANIFEST'
+          npm install -g @bubblewrap/cli
+          yes | sdkmanager "platforms;android-33" "build-tools;33.0.0"
+
+      - name: Create PWA files
+        run: |
+          cat > manifest.json << 'MANIEOF'
           {
             "name": "KUN Control",
             "short_name": "KUN",
-            "start_url": "/kun-app/kun_app.html",
+            "start_url": "https://gxclass8-eng.github.io/kun-app/kun_app.html",
             "display": "standalone",
             "background_color": "#0a0a0f",
             "theme_color": "#58a6ff",
-            "icons": [{
-              "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23161b22' stroke='%2358a6ff' stroke-width='3'/%3E%3Ctext x='50' y='65' text-anchor='middle' fill='%2358a6ff' font-size='40' font-weight='bold'%3EK%3C/text%3E%3C/svg%3E",
-              "sizes": "512x512",
-              "type": "image/svg+xml"
-            }]
+            "orientation": "portrait"
           }
-          MANIFEST
+          MANIEOF
+          
+          # إنشاء service worker
+          cat > sw.js << 'SWEOF'
+          self.addEventListener('fetch', function(e) {
+            e.respondWith(fetch(e.request).catch(function() {
+              return caches.match(e.request);
+            }));
+          });
+          SWEOF
 
-      - name: Create APK with PWA Builder
+      - name: Build APK with bubblewrap
         run: |
-          npx pwabuilder --manifest manifest.json --output kun-app.apk
+          bubblewrap init --manifest manifest.json
+          bubblewrap build
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
