@@ -1,66 +1,18 @@
 name: Build KUN APK
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Build Tools
+      - name: Build APK via Online Tool
         run: |
-          npm install -g @bubblewrap/cli
-          yes | sdkmanager "platforms;android-33" "build-tools;33.0.0"
-
-      - name: Create PWA files
-        run: |
-          cat > manifest.json << 'MANIEOF'
-          {
-            "name": "KUN Control",
-            "short_name": "KUN",
-            "start_url": "https://gxclass8-eng.github.io/kun-app/kun_app.html",
-            "display": "standalone",
-            "background_color": "#0a0a0f",
-            "theme_color": "#58a6ff",
-            "orientation": "portrait"
-          }
-          MANIEOF
-          
-          # إنشاء service worker
-          cat > sw.js << 'SWEOF'
-          self.addEventListener('fetch', function(e) {
-            e.respondWith(fetch(e.request).catch(function() {
-              return caches.match(e.request);
-            }));
-          });
-          SWEOF
-
-      - name: Build APK with bubblewrap
-        run: |
-          bubblewrap init --manifest manifest.json
-          bubblewrap build
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: KUN-Control-APK
-          path: "*.apk"
+          echo "✅ استخدم هذا الرابط لتحويل التطبيق إلى APK:"
+          echo "https://gxclass8-eng.github.io/kun-app/kun_app.html"
+          echo ""
+          echo "اذهب إلى: https://www.pwabuilder.com"
+          echo "الصق الرابط أعلاه"
+          echo "اختر Android"
+          echo "حمل الـ APK"
